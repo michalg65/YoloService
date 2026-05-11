@@ -1,6 +1,9 @@
-FROM python:3.11-slim
+FROM python:3.12-slim-trixie
 
 WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y libgl1-mesa-dev libglib2.0-0 && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
