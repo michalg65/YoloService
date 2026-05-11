@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.responses import FileResponse, Response
+from prometheus_fastapi_instrumentator import Instrumentator
 from ultralytics import YOLO
 from PIL import Image
 import sqlite3
@@ -15,6 +16,9 @@ import torch
 torch.cuda.is_available = lambda: False
 
 app = FastAPI()
+
+# Expose /metrics endpoint with default process metrics + FastAPI HTTP metrics
+Instrumentator().instrument(app).expose(app)
 
 # Confidence threshold for object detection (0.0 - 1.0).
 # Detections below this score are discarded.
