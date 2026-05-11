@@ -42,6 +42,31 @@ The service will be available at http://<your_server_ip>:8080
 
 You can test the api endpoints using `curl` or Postman. See the API Endpoints section below for details on available endpoints and how to use them.
 
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `CONFIDENCE_THRESHOLD` | `0.5` | Minimum confidence score (0.0–1.0) for a detection to be reported. Raise it to get only high-confidence results; lower it to catch more objects. |
+
+Example:
+```bash
+export CONFIDENCE_THRESHOLD=0.7
+python app.py
+```
+
+## Running Tests
+
+The test suite uses `pytest` and FastAPI's built-in test client — no running server needed.
+
+```bash
+pytest tests/
+```
+
+To run tests inside Docker (override the default command):
+```bash
+docker run yolo-service python -m pytest tests/
+```
+
 ## API Endpoints
 
 * `POST /predict` - Upload an image for object detection

@@ -3,15 +3,29 @@ from fastapi.responses import FileResponse, Response
 from ultralytics import YOLO
 from PIL import Image
 import sqlite3
+import logging
 import os
 import uuid
 import shutil
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # Disable GPU usage
 import torch
 torch.cuda.is_available = lambda: False
 
 app = FastAPI()
+
+# Confidence threshold for object detection (0.0 - 1.0).
+# Detections below this score are discarded.
+# Override with: export CONFIDENCE_THRESHOLD=0.7
+_raw_threshold = os.environ.get("CONFIDENCE_THRESHOLD")
+if _raw_threshold is not None:
+    CONFIDENCE_THRESHOLD = float(_raw_threshold)
+    logging.info(f"CONFIDENCE_THRESHOLD set to {CONFIDENCE_THRESHOLD} (from environment)")
+else:
+    CONFIDENCE_THRESHOLD = 0.5
+    logging.info(f"CONFIDENCE_THRESHOLD not set, using default: {CONFIDENCE_THRESHOLD}")
 
 UPLOAD_DIR = "uploads/original"
 PREDICTED_DIR = "uploads/predicted"
@@ -87,7 +101,7 @@ def predict(file: UploadFile = File(...)):
     with open(original_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    results = model(original_path, device="cpu")
+    results = model(original_path, device="cpu", conf=CONFIDENCE_THRESHOLD)
 
     annotated_frame = results[0].plot()  # NumPy image with boxes
     annotated_image = Image.fromarray(annotated_frame)
