@@ -1,0 +1,45 @@
+# .github/workflows/deploy.yml
+name: Build and Deploy YoloService
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-update-manifests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/yolo-service:${{ github.sha }}
+
+      - name: Update image tag in manifest
+        run: |
+          cd ./infra/k8s
+          sed -i "s|image: .*/yolo-service:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/yolo-service:${{ github.sha }}|" deployment.yaml
+
+      - name: Commit and push manifest change
+        run: |
+          cd ./infra/k8s
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add deployment.yaml
+          git commit -m "ci: update yolo-service image to ${{ github.sha }}"
+          git push
