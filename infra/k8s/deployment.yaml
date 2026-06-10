@@ -16,14 +16,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: alonithuji/yolo-service:2967992a11b1775de5c5ddc73ba09ac7fd1fd790
-        resources:
-          requests:
-            cpu: 500m
-            memory: 500Mi
-          limits:
-            cpu: 2000m
-            memory: 2000Mi
+        image: alonithuji/yolo-service:0.0.2
 ---
 apiVersion: v1
 kind: Service
